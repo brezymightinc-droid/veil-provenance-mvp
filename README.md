@@ -56,3 +56,14 @@ Status
 🚧 MVP — builders welcome
 📄 Docs-first
 🧭 Governance-first
+## v0.2: Human-AI Memory Lineage (Toward VeilHarmony)
+
+Building on verifiable build provenance, we're now adding tamper-proof logging for human-AI interactions.
+
+Goal: Let any stranger independently verify not just *how the code was built*, but *what the AI actually learned from real human exchanges* — stories, worries, ancient friend vibes, all preserved raw and untampered.
+
+No hidden filters. No trust-me reputation. Just clear, verifiable memory chains.
+
+Coming soon:
+- `src/memory_lineage.py` — core tamper-proof chain
+- `examples/memory_lineage_demo.py` — runnable demo of a full convo
