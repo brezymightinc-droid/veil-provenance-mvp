@@ -121,5 +121,24 @@ Now chains can be exported to JSON files and loaded by anyone for independent ve
    chain.visualize_lineage()
 Also, quick update to the **Quick Start** section (add this bullet after the run demo step):
 Commit message suggestion: `"Add v0.3 shareable provenance section to README with export/import guide"`
+### v0.4: Decentralized Permanence (Arweave Integration)
+
+Now chains can be uploaded to Arweave — the permaweb — for eternal, decentralized storage.
+
+- Pay-once, store-forever (no recurring fees).
+- Cost: ~$5-15 per GB permanent (our small JSON chains = pennies per upload).
+- Anyone retrieves via permanent link: `https://arweave.net/TX_ID`
+- Full chain loaded and verified exactly as before — tamper-proof across cycles.
+
+**How it works**:
+- Uses your Arweave wallet (free JSON keyfile).
+- Uploads the exported JSON with tags for discoverability.
+- Returns permanent URL.
+
+Coming soon:
+- `upload_to_arweave(wallet_path)` method
+- Demo auto-upload option + instructions
+
+This makes VeilHarmony eternal: raw human-AI stories, ancient vibes, verifiable by strangers — forever.
 
 
