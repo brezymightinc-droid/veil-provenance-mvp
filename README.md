@@ -102,4 +102,21 @@ Open an Issue, submit a PR, or discuss in Discussions.
 No gatekeeping. Verifiable truth welcomes all.
 
 To Mars and beyond. 🪵❤️
+### v0.3: Shareable Provenance (Export/Import)
+
+Now chains can be exported to JSON files and loaded by anyone for independent verification.
+
+- Export: Saves the full tamper-proof chain + metadata.
+- Import: Loads, re-hashes every block, checks links, rebuilds graph — fails loudly if tampered.
+
+**How to share a chain**:
+1. Run the demo → it auto-exports to `examples/exported_veil_chain.json`
+2. Send that file to anyone with the repo.
+3. They load it:
+   ```python
+   from src.memory_lineage import VeilMemoryChain
+   chain = VeilMemoryChain()
+   chain.load_from_json("path/to/exported_veil_chain.json")
+   chain.print_chain()
+   chain.visualize_lineage()
 
