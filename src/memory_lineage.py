@@ -158,3 +158,31 @@ class VeilMemoryChain:
         except Exception as e:
             print(f"Arweave upload failed: {e}")
             return None
+                def extend_with_custom_ai(self, ai_callable, prompt: str, parent_id: int = None):
+        """
+        Extend the chain with a response from a user-provided AI.
+        
+        Args:
+            ai_callable: Callable function that takes a prompt and returns a string response.
+            prompt: The input prompt for the AI.
+            parent_id: Optional ID of the parent block (for branching lineages).
+        
+        Returns:
+            The new block ID if successful, None if extension fails.
+        """
+        try:
+            # Call the user's AI
+            ai_response = ai_callable(prompt)
+            if not isinstance(ai_response, str):
+                raise ValueError("AI callable must return a string response")
+            
+            # Add as AI block
+            new_id = self.add_interaction("ai", ai_response, parent_id)
+            
+            print(f"Chain extended successfully with AI response (Block ID: {new_id})")
+            print("Response hashed and linked — fully verifiable.")
+            return new_id
+            
+        except Exception as e:
+            print(f"AI extension failed: {e}")
+            return None
