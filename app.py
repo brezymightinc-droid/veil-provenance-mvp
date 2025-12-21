@@ -18,15 +18,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Launch Ready Banner (when ready)
-st.info("VeilHarmony is in private development. Launch ready when you say — custom domain (veilharmony.org) setup coming.")
-
 # Sidebar for actions
 action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "View Stewards"])
 
 chain = None  # Shared chain state
 
-# Continue Chain (Load + Extend)
+# Continue Chain (Load + Extend + Easter Egg Trigger)
 if action == "Continue Chain":
     st.header("Continue a Chain")
     uploaded_file = st.file_uploader("Upload JSON chain file to load", type="json")
@@ -46,6 +43,49 @@ if action == "Continue Chain":
             labels = nx.get_node_attributes(chain.graph, 'label')
             nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
             st.pyplot(fig)
+            
+            # Extend Section
+            st.subheader("Extend the Loaded Chain")
+            prompt = st.text_input("Enter prompt for AI extension")
+            if st.button("Extend & Continue"):
+                # Easter Egg Trigger
+                if prompt.lower() in ["combined assault", "mollywop"]:
+                    st.success("Honor mode activated! Quick-Scope Runner unlocked.")
+                    # Open game in modal
+                    st.components.v1.html("""
+                    <div id="gameModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
+                      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#1a1a2e; padding:20px; border:2px solid #ffd700;">
+                        <h2>🔫 Veil Quick-Scope Runner</h2>
+                        <iframe srcdoc='YOUR_GAME_HTML_HERE' width="600" height="400" frameborder="0"></iframe>
+                        <button onclick="document.getElementById('gameModal').style.display='none'">Close</button>
+                      </div>
+                    </div>
+                    <script>document.getElementById('gameModal').style.display = 'block';</script>
+                    """, height=500)
+                else:
+                    # Placeholder AI callable (replace with real Grok or user AI later)
+                    def placeholder_ai(p):
+                        return f"Placeholder AI response to '{p}': Balance endures in the coship."
+
+                    # Extend from last block
+                    parent_id = len(chain.chain) - 1  # Last block as parent
+                    new_id = chain.extend_with_custom_ai(placeholder_ai, prompt, parent_id=parent_id)
+                    if new_id:
+                        st.success(f"Chain continued! New block ID: {new_id}")
+                        st.write("Updated chain content:")
+                        st.json(chain.chain)
+                        st.subheader("Updated Lineage Graph")
+                        fig = plt.figure(figsize=(10, 8))
+                        pos = nx.spring_layout(chain.graph)
+                        labels = nx.get_node_attributes(chain.graph, 'label')
+                        nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
+                        st.pyplot(fig)
+                        # Export updated chain
+                        updated_file = "updated_chain.json"
+                        chain.export_to_json(updated_file)
+                        st.download_button("Download Updated Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
+                    else:
+                        st.error("Extension failed.")
         except Exception as e:
             st.error(f"Load failed: {e}")
 
