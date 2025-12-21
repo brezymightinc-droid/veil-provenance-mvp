@@ -4,3 +4,4 @@ networkx
 matplotlib
 arweave-python-client
 requests  # For API calls to user-provided endpoints
+streamlit
