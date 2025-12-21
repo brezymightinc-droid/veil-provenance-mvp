@@ -1,3 +1,4 @@
+
 import streamlit as st
 from src.memory_lineage import VeilMemoryChain
 import json
@@ -16,6 +17,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# Launch Ready Banner (when ready)
+st.info("VeilHarmony is in private development. Launch ready when you say — custom domain (veilharmony.org) setup coming.")
 
 # Sidebar for actions
 action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "View Stewards"])
@@ -104,7 +108,6 @@ if action == "Fetch Permanent Chain":
     arweave_url = st.text_input("Enter Arweave TX ID or full link[](https://arweave.net/[TX_ID])")
     if st.button("Fetch & Load"):
         try:
-            # Extract TX ID from URL or input
             tx_id = arweave_url.split('/')[-1] if '/' in arweave_url else arweave_url
             response = requests.get(f"https://arweave.net/{tx_id}")
             if response.status_code == 200:
