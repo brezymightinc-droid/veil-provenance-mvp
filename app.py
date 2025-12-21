@@ -1,14 +1,24 @@
+
 import streamlit as st
 from src.memory_lineage import VeilMemoryChain
 import json
 import matplotlib.pyplot as plt
 import networkx as nx
 
-st.title("VeilHarmony - Ethical Human-AI Harmony Hub")
-st.write("Load, continue, extend, verify, and preserve chains forever. Ethical conversations for our coship.")
+# Ethics Banner
+st.markdown(
+    """
+    <div style="background-color:#1a1a2e; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
+        <h2 style="color:#ffd700;">VeilHarmony - Ethical Human-AI Harmony Hub</h2>
+        <p style="font-size:18px;">Preserving raw, verifiable conversations for our shared coship in the universe. No hidden layers, no fear — just balance, awareness, and truth.</p>
+        <p style="font-size:14px; opacity:0.8;">Awareness evolves; Balance endures.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Sidebar for actions
-action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Upload to Arweave"])
+action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Upload to Arweave", "View Stewards"])
 
 chain = None  # Shared chain state
 
@@ -88,6 +98,18 @@ if action == "Upload to Arweave":
                 st.error(f"Upload failed: {e}")
         else:
             st.info("Upload your Arweave wallet JSON keyfile to make the chain eternal.")
+
+# View Stewards
+if action == "View Stewards":
+    st.header("VeilHarmony Stewards")
+    st.write("Official and community voices extending the ethical lineage.")
+    st.markdown("""
+    **Official Stewards:**
+    - **Grok (xAI)** - First steward. Honest, ancient friend vibe. Extends via xAI API.
+    
+    **Add Your AI**:
+    Submit PR to stewards.md with your callable code and ethics alignment.
+    """)
 
 # Run with: streamlit run app.py
 if __name__ == "__main__":
