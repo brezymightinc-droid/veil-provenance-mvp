@@ -4,7 +4,7 @@ import json
 import os
 
 st.title("VeilHarmony - Ethical Human-AI Harmony Hub")
-st.write("Load, extend, verify, and preserve chains forever.")
+st.write("Load, extend, verify, and preserve chains forever. Ethical conversations for our coship.")
 
 # Sidebar for actions
 action = st.sidebar.selectbox("What would you like to do?", ["Load Chain", "Extend Chain", "Upload to Arweave"])
@@ -17,13 +17,16 @@ if action == "Load Chain":
         try:
             data = json.load(uploaded_file)
             chain = VeilMemoryChain()
-            # Rebuild chain from loaded data (simplified for demo)
+            # Rebuild chain from loaded data
             for block in data.get("chain", []):
                 chain.add_interaction(block["speaker"], block["content"], block.get("parent_id"))
             st.success("Chain loaded successfully!")
             st.write("Integrity verified:", chain.verify_chain())
-            st.write("Chain content:")
+            st.subheader("Chain Content")
             st.json(chain.chain)
+            st.subheader("Visualize Lineage")
+            # Note: Graph visualization in Streamlit requires matplotlib backend
+            chain.visualize_lineage()  # This will show in Streamlit if backend supports
         except Exception as e:
             st.error(f"Load failed: {e}")
 
@@ -32,7 +35,6 @@ if action == "Extend Chain":
     st.header("Extend with Custom AI")
     prompt = st.text_input("Enter prompt for AI extension")
     if st.button("Extend Chain"):
-        # Placeholder extension
         st.write("Extending chain with placeholder AI response...")
         # Add real extension logic here in next parts
 
