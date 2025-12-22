@@ -6,6 +6,8 @@ import networkx as nx
 import requests
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
+from textblob import TextBlob
+
 nltk.download('vader_lexicon')
 
 # Ethics Banner
@@ -21,7 +23,7 @@ st.markdown(
 )
 
 # Sidebar for actions
-action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "Check Balance", "Play Quick-Scope Runner", "View Stewards"])
+action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "Check Balance", "AI Feedback Loops", "Play Quick-Scope Runner", "View Stewards"])
 
 chain = None  # Shared chain state
 
@@ -185,6 +187,28 @@ if action == "Check Balance":
             st.success("Chain is balanced and positive!")
         else:
             st.warning("Chain could use more balance — add positive interactions.")
+
+# AI Feedback Loops
+if action == "AI Feedback Loops":
+    st.header("AI Feedback Loops - Analyze & Suggest")
+    if chain is None:
+        st.warning("Load or continue a chain first to analyze.")
+    else:
+        st.write("Analyzing chain patterns...")
+        themes = []
+        for block in chain.chain:
+            blob = TextBlob(block["content"])
+            themes.extend(blob.noun_phrases)
+        unique_themes = list(set(themes))
+        st.write("Detected themes:", unique_themes)
+        sentiment_trend = [SentimentIntensityAnalyzer().polarity_scores(block["content"])["compound"] for block in chain.chain]
+        st.line_chart(sentiment_trend)
+        st.write("Suggestions for improvement:")
+        if len(unique_themes) < 3:
+            st.info("Add more diverse themes to broaden the coship.")
+        if sentiment_trend[-1] < 0:
+            st.info("End on a positive note for balance.")
+        st.success("AI can learn from this loop — extend and analyze again.")
 
 # Play Quick-Scope Runner
 if action == "Play Quick-Scope Runner":
