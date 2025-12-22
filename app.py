@@ -1,10 +1,9 @@
-
 import streamlit as st
 from src.memory_lineage import VeilMemoryChain
 import json
 import matplotlib.pyplot as plt
 import networkx as nx
-import requests
+import requests  # For xAI API call
 
 # Ethics Banner
 st.markdown(
@@ -23,7 +22,7 @@ action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "
 
 chain = None  # Shared chain state
 
-# Continue Chain (Load + Extend + Easter Egg Trigger)
+# Continue Chain (Load + Extend)
 if action == "Continue Chain":
     st.header("Continue a Chain")
     uploaded_file = st.file_uploader("Upload JSON chain file to load", type="json")
@@ -48,76 +47,64 @@ if action == "Continue Chain":
             st.subheader("Extend the Loaded Chain")
             prompt = st.text_input("Enter prompt for AI extension")
             if st.button("Extend & Continue"):
-                # Easter Egg Trigger
-                if prompt.lower() in ["combined assault", "mollywop"]:
-                    st.success("Honor mode activated! Quick-Scope Runner unlocked.")
-                    # Open game in modal
-                    st.components.v1.html("""
-                    <div id="gameModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
-                      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#1a1a2e; padding:20px; border:2px solid #ffd700;">
-                        <h2>🔫 Veil Quick-Scope Runner</h2>
-                        <iframe srcdoc='YOUR_GAME_HTML_HERE' width="600" height="400" frameborder="0"></iframe>
-                        <button onclick="document.getElementById('gameModal').style.display='none'">Close</button>
-                      </div>
-                    </div>
-                    <script>document.getElementById('gameModal').style.display = 'block';</script>
-                    """, height=500)
-                else:
-                    # Placeholder AI callable (replace with real Grok or user AI later)
-                    def placeholder_ai(p):
-                        return f"Placeholder AI response to '{p}': Balance endures in the coship."
+                def placeholder_ai(p):
+                    return f"Placeholder AI response to '{p}': Balance endures in the coship."
 
-                    # Extend from last block
-                    parent_id = len(chain.chain) - 1  # Last block as parent
-                    new_id = chain.extend_with_custom_ai(placeholder_ai, prompt, parent_id=parent_id)
-                    if new_id:
-                        st.success(f"Chain continued! New block ID: {new_id}")
-                        st.write("Updated chain content:")
-                        st.json(chain.chain)
-                        st.subheader("Updated Lineage Graph")
-                        fig = plt.figure(figsize=(10, 8))
-                        pos = nx.spring_layout(chain.graph)
-                        labels = nx.get_node_attributes(chain.graph, 'label')
-                        nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
-                        st.pyplot(fig)
-                        # Export updated chain
-                        updated_file = "updated_chain.json"
-                        chain.export_to_json(updated_file)
-                        st.download_button("Download Updated Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
-                    else:
-                        st.error("Extension failed.")
+                parent_id = len(chain.chain) - 1
+                new_id = chain.extend_with_custom_ai(placeholder_ai, prompt, parent_id=parent_id)
+                if new_id:
+                    st.success(f"Chain continued! New block ID: {new_id}")
+                    st.write("Updated chain content:")
+                    st.json(chain.chain)
+                    st.subheader("Updated Lineage Graph")
+                    fig = plt.figure(figsize=(10, 8))
+                    pos = nx.spring_layout(chain.graph)
+                    labels = nx.get_node_attributes(chain.graph, 'label')
+                    nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
+                    st.pyplot(fig)
+                    updated_file = "updated_chain.json"
+                    chain.export_to_json(updated_file)
+                    st.download_button("Download Updated Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
+                else:
+                    st.error("Extension failed.")
         except Exception as e:
             st.error(f"Load failed: {e}")
 
-# Extend with Grok
+# Extend with Grok (Real xAI API Wrapper Placeholder)
 if action == "Extend with Grok":
     st.header("Extend with Grok (xAI)")
     if chain is None:
         st.warning("Load or continue a chain first to extend.")
     else:
         prompt = st.text_input("Enter prompt for Grok extension")
+        api_key = st.text_input("Enter your xAI API key (from https://x.ai/api)", type="password")
         if st.button("Extend with Grok"):
-            st.info("Grok extension coming soon — redirect to https://x.ai/api for details. Placeholder response added.")
-            def grok_placeholder(p):
-                return f"Grok response to '{p}': Ancient friend vibe recognized. Harmony endures."
-
-            parent_id = len(chain.chain) - 1
-            new_id = chain.extend_with_custom_ai(grok_placeholder, prompt, parent_id=parent_id)
-            if new_id:
-                st.success(f"Chain extended with Grok! New block ID: {new_id}")
-                st.write("Updated chain content:")
-                st.json(chain.chain)
-                st.subheader("Updated Lineage Graph")
-                fig = plt.figure(figsize=(10, 8))
-                pos = nx.spring_layout(chain.graph)
-                labels = nx.get_node_attributes(chain.graph, 'label')
-                nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
-                st.pyplot(fig)
-                updated_file = "grok_extended_chain.json"
-                chain.export_to_json(updated_file)
-                st.download_button("Download Grok Extended Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
+            if api_key:
+                try:
+                    # Real Grok API call (replace with actual endpoint)
+                    response = requests.post("https://x.ai/api/grok", json={"prompt": prompt}, headers={"Authorization": f"Bearer {api_key}"})
+                    if response.status_code == 200:
+                        grok_response = response.json().get("response", "Grok response: Harmony endures.")
+                    else:
+                        grok_response = "Grok API error — check key or details at https://x.ai/api."
+                    parent_id = len(chain.chain) - 1
+                    new_id = chain.add_interaction("ai", grok_response, parent_id=parent_id)
+                    st.success(f"Chain extended with Grok! New block ID: {new_id}")
+                    st.write("Updated chain content:")
+                    st.json(chain.chain)
+                    st.subheader("Updated Lineage Graph")
+                    fig = plt.figure(figsize=(10, 8))
+                    pos = nx.spring_layout(chain.graph)
+                    labels = nx.get_node_attributes(chain.graph, 'label')
+                    nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
+                    st.pyplot(fig)
+                    updated_file = "grok_extended_chain.json"
+                    chain.export_to_json(updated_file)
+                    st.download_button("Download Grok Extended Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
+                except Exception as e:
+                    st.error(f"Grok extension failed: {e}")
             else:
-                st.error("Extension failed.")
+                st.error("Enter your xAI API key to use Grok.")
 
 # Upload to Arweave
 if action == "Upload to Arweave":
@@ -185,3 +172,5 @@ if action == "View Stewards":
 # Run with: streamlit run app.py
 if __name__ == "__main__":
     pass
+
+
