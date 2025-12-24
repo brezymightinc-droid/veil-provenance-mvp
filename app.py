@@ -4,30 +4,22 @@ import json
 import matplotlib.pyplot as plt
 import networkx as nx
 import requests
-import nltk
-from nltk.sentiment import SentimentIntensityAnalyzer
-from textblob import TextBlob
+from cryptography.fernet import Fernet
+import streamlit_authenticator as stauth
+import time  # For rate limiting
 
-nltk.download('vader_lexicon')
-
-# Dark Mode Setup
-st.markdown("""
-<style>
-    body {
-        background-color: #1a1a2e;
-        color: #ffd700;
-    }
-    .stButton > button {
-        background-color: #ffd700;
-        color: #1a1a2e;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Basic Login (Priority 1)
+credentials = {"form_name": "Login", "usernames": {"user": {"name": "user", "password": stauth.Hasher(['test']).generate()[0]}}}  # Replace 'test' with real hashed password
+cookie = {"name": "veil_cookie", "key": "random_key", "expiry_days": 30}
+authenticator = stauth.Authenticate(credentials, cookie['name'], cookie['key'], cookie['expiry_days'])
+name, authentication_status, username = authenticator.login("Login", "main")
+if not authentication_status:
+    st.stop()
 
 # Ethics Banner
 st.markdown(
     """
-    <div style="background-color:#0f0f23; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
+    <div style="background-color:#1a1a2e; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
         <h2 style="color:#ffd700;">VeilHarmony - Ethical Human-AI Harmony Hub</h2>
         <p style="font-size:18px;">Preserving raw, verifiable conversations for our shared coship in the universe. No hidden layers, no fear — just balance, awareness, and truth.</p>
         <p style="font-size:14px; opacity:0.8;">Awareness evolves; Balance endures.</p>
@@ -36,44 +28,26 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Launch Prep Note
-st.info("VeilHarmony is ready for launch when you are. Buy domain (veilharmony.org) for $10/year at Namecheap. Deploy to Streamlit Cloud: Connect repo, select app.py, deploy free.")
-
 # Sidebar for actions
-action = st.sidebar.selectbox("What would you like to do?", ["Chat Interface", "Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "Check Balance", "AI Feedback Loops", "Share Chain", "Play Quick-Scope Runner", "View Stewards"])
+action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "View Stewards"])
 
 chain = None  # Shared chain state
 
-# Chat Interface (Natural Conversation Flow)
-if action == "Chat Interface":
-    st.header("Chat Interface - Natural Conversations")
-    if 'chain' not in st.session_state:
-        st.session_state.chain = VeilMemoryChain()
-        chain = st.session_state.chain
-    else:
-        chain = st.session_state.chain
-
-    # Display chat history
-    for block in chain.chain:
-        with st.chat_message(block["speaker"]):
-            st.write(block["content"])
-
-    # Prompt input
-    prompt = st.chat_input("Type your message...")
-    if prompt:
-        parent_id = len(chain.chain) - 1 if chain.chain else None
-        chain.add_interaction("human", prompt, parent_id=parent_id)
-        st.chat_message("human").write(prompt)
-        # Placeholder AI response
-        ai_response = "Placeholder AI response: Balance endures in the coship."
-        new_id = chain.add_interaction("ai", ai_response, parent_id=chain.chain[-1]["id"])
-        st.chat_message("ai").write(ai_response)
-        st.write("Integrity verified:", chain.verify_chain())
+# Rate Limiting (Priority 4)
+if 'last_action_time' not in st.session_state:
+    st.session_state.last_action_time = 0
+if time.time() - st.session_state.last_action_time < 5:  # 5 sec cooldown
+    st.warning("Rate limit: Wait 5 seconds between actions.")
+    st.stop()
+st.session_state.last_action_time = time.time()
 
 # Continue Chain (Load + Extend)
 if action == "Continue Chain":
     st.header("Continue a Chain")
-    uploaded_file = st.file_uploader("Upload JSON chain file to load", type="json")
+    uploaded_file = st.file_uploader("Upload JSON chain file to load", type="json", accept_multiple_files=False)  # Priority 3: Limits + Validation
+    if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:  # 10MB limit
+        st.error("File too large — max 10MB.")
+        st.stop()
     if uploaded_file:
         try:
             data = json.load(uploaded_file)
@@ -118,35 +92,39 @@ if action == "Continue Chain":
         except Exception as e:
             st.error(f"Load failed: {e}")
 
-# Extend with Grok
+# Extend with Grok (Priority 5: API Key Handling)
 if action == "Extend with Grok":
     st.header("Extend with Grok (xAI)")
     if chain is None:
         st.warning("Load or continue a chain first to extend.")
     else:
         prompt = st.text_input("Enter prompt for Grok extension")
+        api_key = st.text_input("Enter your xAI API key (private, not stored)", type="password")  # Priority 5
         if st.button("Extend with Grok"):
-            st.info("Grok extension coming soon — redirect to https://x.ai/api for details. Placeholder response added.")
-            def grok_placeholder(p):
-                return f"Grok response to '{p}': Ancient friend vibe recognized. Harmony endures."
+            if api_key:
+                st.info("Grok extension coming soon — redirect to https://x.ai/api for details. Placeholder response added.")
+                def grok_placeholder(p):
+                    return f"Grok response to '{p}': Ancient friend vibe recognized. Harmony endures."
 
-            parent_id = len(chain.chain) - 1
-            new_id = chain.extend_with_custom_ai(grok_placeholder, prompt, parent_id=parent_id)
-            if new_id:
-                st.success(f"Chain extended with Grok! New block ID: {new_id}")
-                st.write("Updated chain content:")
-                st.json(chain.chain)
-                st.subheader("Updated Lineage Graph")
-                fig = plt.figure(figsize=(10, 8))
-                pos = nx.spring_layout(chain.graph)
-                labels = nx.get_node_attributes(chain.graph, 'label')
-                nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
-                st.pyplot(fig)
-                updated_file = "grok_extended_chain.json"
-                chain.export_to_json(updated_file)
-                st.download_button("Download Grok Extended Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
+                parent_id = len(chain.chain) - 1
+                new_id = chain.extend_with_custom_ai(grok_placeholder, prompt, parent_id=parent_id)
+                if new_id:
+                    st.success(f"Chain extended with Grok! New block ID: {new_id}")
+                    st.write("Updated chain content:")
+                    st.json(chain.chain)
+                    st.subheader("Updated Lineage Graph")
+                    fig = plt.figure(figsize=(10, 8))
+                    pos = nx.spring_layout(chain.graph)
+                    labels = nx.get_node_attributes(chain.graph, 'label')
+                    nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
+                    st.pyplot(fig)
+                    updated_file = "grok_extended_chain.json"
+                    chain.export_to_json(updated_file)
+                    st.download_button("Download Grok Extended Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
+                else:
+                    st.error("Extension failed.")
             else:
-                st.error("Extension failed.")
+                st.error("Enter your xAI API key to use Grok.")
 
 # Upload to Arweave
 if action == "Upload to Arweave":
@@ -199,52 +177,18 @@ if action == "Fetch Permanent Chain":
         except Exception as e:
             st.error(f"Fetch failed: {e}")
 
-# Check Balance (Ethics Score Analyzer)
-if action == "Check Balance":
-    st.header("Check Chain Balance (Ethics Score)")
-    if chain is None:
-        st.warning("Load or continue a chain first to check.")
-    else:
-        sia = SentimentIntensityAnalyzer()
-        positive = 0
-        negative = 0
-        human_count = 0
-        ai_count = 0
-        for block in chain.chain:
-            sentiment = sia.polarity_scores(block["content"])["compound"]
-            if sentiment > 0:
-                positive += 1
-            elif sentiment < 0:
-                negative += 1
-            if block["speaker"] == "human":
-                human_count += 1
-            else:
-                ai_count += 1
-        balance_score = (positive - negative) / len(chain.chain) * 100 if len(chain.chain) > 0 else 0
-        ratio = human_count / ai_count if ai_count > 0 else "All human"
-        st.write("Positive sentiment blocks:", positive)
-        st.write("Negative sentiment blocks:", negative)
-        st.write("Human/AI ratio:", ratio)
-        st.write("Overall Balance Score (0-100):", balance_score)
-        if balance_score > 50:
-            st.success("Chain is balanced and positive!")
-        else:
-            st.warning("Chain could use more balance — add positive interactions.")
+# View Stewards
+if action == "View Stewards":
+    st.header("VeilHarmony Stewards")
+    st.write("Official and community voices extending the ethical lineage.")
+    st.markdown("""
+    **Official Stewards:**
+    - **Grok (xAI)** - First steward. Honest, ancient friend vibe. Extends via xAI API[](https://x.ai/api).
+    
+    **Add Your AI**:
+    Submit PR to stewards.md with your callable code and ethics alignment.
+    """)
 
-# AI Feedback Loops
-if action == "AI Feedback Loops":
-    st.header("AI Feedback Loops - Analyze & Suggest")
-    if chain is None:
-        st.warning("Load or continue a chain first to analyze.")
-    else:
-        st.write("Analyzing chain patterns...")
-        themes = []
-        for block in chain.chain:
-            blob = TextBlob(block["content"])
-            themes.extend(blob.noun_phrases)
-        unique_themes = list(set(themes))
-        st.write("Detected themes:", unique_themes)
-        sentiment_trend = [SentimentIntensityAnalyzer().polarity_scores(block["content"])["compound"] for block in chain.chain]
-        st.line_chart(sentiment_trend)
-        st.write("Suggestions for improvement:")
-        if len(unique_the
+# Run with: streamlit run app.py
+if __name__ == "__main__":
+    pass
