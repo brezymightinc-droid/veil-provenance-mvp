@@ -7,3 +7,5 @@ nltk
 textblob  # For theme analysis
 streamlit-authenticator  # For login
 cryptography  # For encryption
+streamlit-authenticator  # For login
+cryptography  # For encryption
