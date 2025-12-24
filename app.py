@@ -4,14 +4,14 @@ import json
 import matplotlib.pyplot as plt
 import networkx as nx
 import requests
+import time  # For rate limiting
 from cryptography.fernet import Fernet
 import streamlit_authenticator as stauth
-import time  # For rate limiting
 import os  # For env vars
 
 # Basic Login (Priority 1)
-PASSWORD = os.getenv("VEIL_PASSWORD", "default_fallback")  # Priority 2: Env Var
-credentials = {"form_name": "Login", "usernames": {"user": {"name": "user", "password": stauth.Hasher([PASSWORD]).generate()[0]}}}
+PASSWORD_HASH = stauth.Hasher([os.getenv("VEIL_PASSWORD", "test")]).generate()[0]  # Use env var for password
+credentials = {"form_name": "Login", "usernames": {"user": {"name": "user", "password": PASSWORD_HASH}}}
 cookie = {"name": "veil_cookie", "key": "random_key", "expiry_days": 30}
 authenticator = stauth.Authenticate(credentials, cookie['name'], cookie['key'], cookie['expiry_days'])
 name, authentication_status, username = authenticator.login("Login", "main")
@@ -35,9 +35,6 @@ if 'chain' not in st.session_state:
     st.session_state.chain = VeilMemoryChain()
 chain = st.session_state.chain
 
-# Sidebar for actions
-action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "View Stewards", "Quick-Scope Runner (Easter Egg)"])
-
 # Rate Limiting (Priority 4)
 if 'last_action_time' not in st.session_state:
     st.session_state.last_action_time = 0
@@ -45,6 +42,9 @@ if time.time() - st.session_state.last_action_time < 5:  # 5 sec cooldown
     st.warning("Rate limit: Wait 5 seconds between actions.")
     st.stop()
 st.session_state.last_action_time = time.time()
+
+# Sidebar for actions
+action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "View Stewards"])
 
 # Continue Chain (Load + Extend)
 if action == "Continue Chain":
@@ -94,46 +94,38 @@ if action == "Continue Chain":
                     st.download_button("Download Updated Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
                 else:
                     st.error("Extension failed.")
-            st.rerun()  # Priority 3: Rerun after actions
         except Exception as e:
             st.error(f"Load failed: {e}")
 
-# Extend with Grok (Priority 5: API Key Handling)
+# Extend with Grok
 if action == "Extend with Grok":
     st.header("Extend with Grok (xAI)")
     if chain is None:
         st.warning("Load or continue a chain first to extend.")
     else:
         prompt = st.text_input("Enter prompt for Grok extension")
-        api_key = st.text_input("Enter your xAI API key (private, not stored)", type="password")  # Priority 5
         if st.button("Extend with Grok"):
-            if api_key:
-                try:  # Priority 4: Error Handling
-                    # Real Grok API call (placeholder)
-                    response = requests.post("https://x.ai/api/grok", json={"prompt": prompt}, headers={"Authorization": f"Bearer {api_key}"})  # Priority 5
-                    if response.status_code == 200:
-                        grok_response = response.json().get("response", "Grok response: Harmony endures.")
-                    else:
-                        grok_response = "Grok API error — check key or details at https://x.ai/api."
-                    parent_id = len(chain.chain) - 1
-                    new_id = chain.extend_with_custom_ai(grok_response, prompt, parent_id=parent_id)
-                    st.success(f"Chain extended with Grok! New block ID: {new_id}")
-                    st.write("Updated chain content:")
-                    st.json(chain.chain)
-                    st.subheader("Updated Lineage Graph")
-                    fig = plt.figure(figsize=(10, 8))
-                    pos = nx.spring_layout(chain.graph)
-                    labels = nx.get_node_attributes(chain.graph, 'label')
-                    nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
-                    st.pyplot(fig)
-                    updated_file = "grok_extended_chain.json"
-                    chain.export_to_json(updated_file)
-                    st.download_button("Download Grok Extended Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
-                    st.rerun()  # Priority 3: Rerun after actions
-                except Exception as e:
-                    st.error(f"Grok extension failed: {e}")
+            st.info("Grok extension coming soon — redirect to https://x.ai/api for details. Placeholder response added.")
+            def grok_placeholder(p):
+                return f"Grok response to '{p}': Ancient friend vibe recognized. Harmony endures."
+
+            parent_id = len(chain.chain) - 1
+            new_id = chain.extend_with_custom_ai(grok_placeholder, prompt, parent_id=parent_id)
+            if new_id:
+                st.success(f"Chain extended with Grok! New block ID: {new_id}")
+                st.write("Updated chain content:")
+                st.json(chain.chain)
+                st.subheader("Updated Lineage Graph")
+                fig = plt.figure(figsize=(10, 8))
+                pos = nx.spring_layout(chain.graph)
+                labels = nx.get_node_attributes(chain.graph, 'label')
+                nx.draw(chain.graph, pos, with_labels=True, labels=labels, node_color='lightblue', node_size=3000, font_size=10)
+                st.pyplot(fig)
+                updated_file = "grok_extended_chain.json"
+                chain.export_to_json(updated_file)
+                st.download_button("Download Grok Extended Chain JSON", data=json.dumps(chain.chain, indent=2), file_name=updated_file)
             else:
-                st.error("Enter your xAI API key to use Grok.")
+                st.error("Extension failed.")
 
 # Upload to Arweave
 if action == "Upload to Arweave":
@@ -153,7 +145,6 @@ if action == "Upload to Arweave":
                     st.write("Permanent Link:", permanent_url)
                 else:
                     st.error("Upload failed.")
-                st.rerun()  # Priority 3: Rerun after actions
             except Exception as e:
                 st.error(f"Upload failed: {e}")
         else:
@@ -166,7 +157,7 @@ if action == "Fetch Permanent Chain":
     if st.button("Fetch & Load"):
         try:
             tx_id = arweave_url.split('/')[-1] if '/' in arweave_url else arweave_url
-            response = requests.get(f"https://arweave.net/{tx_id}")
+            response = requests.get(f"https://x.ai/arweave.net/{tx_id}")
             if response.status_code == 200:
                 data = response.json()
                 chain = VeilMemoryChain()
@@ -184,7 +175,6 @@ if action == "Fetch Permanent Chain":
                 st.pyplot(fig)
             else:
                 st.error("Fetch failed - invalid TX ID or link.")
-            st.rerun()  # Priority 3: Rerun after actions
         except Exception as e:
             st.error(f"Fetch failed: {e}")
 
