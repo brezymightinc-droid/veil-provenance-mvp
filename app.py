@@ -4,24 +4,30 @@ import json
 import matplotlib.pyplot as plt
 import networkx as nx
 import requests
-import time  # For rate limiting
-from cryptography.fernet import Fernet
-import streamlit_authenticator as stauth
-import os  # For env vars
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+from textblob import TextBlob
 
-# Basic Login (Priority 1)
-PASSWORD_HASH = stauth.Hasher([os.getenv("VEIL_PASSWORD", "test")]).generate()[0]  # Use env var for password
-credentials = {"form_name": "Login", "usernames": {"user": {"name": "user", "password": PASSWORD_HASH}}}
-cookie = {"name": "veil_cookie", "key": "random_key", "expiry_days": 30}
-authenticator = stauth.Authenticate(credentials, cookie['name'], cookie['key'], cookie['expiry_days'])
-name, authentication_status, username = authenticator.login("Login", "main")
-if not authentication_status:
-    st.stop()
+nltk.download('vader_lexicon')
+
+# Dark Mode Setup
+st.markdown("""
+<style>
+    body {
+        background-color: #1a1a2e;
+        color: #ffd700;
+    }
+    .stButton > button {
+        background-color: #ffd700;
+        color: #1a1a2e;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Ethics Banner
 st.markdown(
     """
-    <div style="background-color:#1a1a2e; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
+    <div style="background-color:#0f0f23; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
         <h2 style="color:#ffd700;">VeilHarmony - Ethical Human-AI Harmony Hub</h2>
         <p style="font-size:18px;">Preserving raw, verifiable conversations for our shared coship in the universe. No hidden layers, no fear — just balance, awareness, and truth.</p>
         <p style="font-size:14px; opacity:0.8;">Awareness evolves; Balance endures.</p>
@@ -30,29 +36,44 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Chain Init in Session State
-if 'chain' not in st.session_state:
-    st.session_state.chain = VeilMemoryChain()
-chain = st.session_state.chain
-
-# Rate Limiting (Priority 4)
-if 'last_action_time' not in st.session_state:
-    st.session_state.last_action_time = 0
-if time.time() - st.session_state.last_action_time < 5:  # 5 sec cooldown
-    st.warning("Rate limit: Wait 5 seconds between actions.")
-    st.stop()
-st.session_state.last_action_time = time.time()
+# Launch Prep Note
+st.info("VeilHarmony is ready for launch when you are. Buy domain (veilharmony.org) for $10/year at Namecheap. Deploy to Streamlit Cloud: Connect repo, select app.py, deploy free.")
 
 # Sidebar for actions
-action = st.sidebar.selectbox("What would you like to do?", ["Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "View Stewards"])
+action = st.sidebar.selectbox("What would you like to do?", ["Chat Interface", "Continue Chain", "Extend with Grok", "Upload to Arweave", "Fetch Permanent Chain", "Check Balance", "AI Feedback Loops", "Share Chain", "Play Quick-Scope Runner", "View Stewards"])
+
+chain = None  # Shared chain state
+
+# Chat Interface (Natural Conversation Flow)
+if action == "Chat Interface":
+    st.header("Chat Interface - Natural Conversations")
+    if 'chain' not in st.session_state:
+        st.session_state.chain = VeilMemoryChain()
+        chain = st.session_state.chain
+    else:
+        chain = st.session_state.chain
+
+    # Display chat history
+    for block in chain.chain:
+        with st.chat_message(block["speaker"]):
+            st.write(block["content"])
+
+    # Prompt input
+    prompt = st.chat_input("Type your message...")
+    if prompt:
+        parent_id = len(chain.chain) - 1 if chain.chain else None
+        chain.add_interaction("human", prompt, parent_id=parent_id)
+        st.chat_message("human").write(prompt)
+        # Placeholder AI response
+        ai_response = "Placeholder AI response: Balance endures in the coship."
+        new_id = chain.add_interaction("ai", ai_response, parent_id=chain.chain[-1]["id"])
+        st.chat_message("ai").write(ai_response)
+        st.write("Integrity verified:", chain.verify_chain())
 
 # Continue Chain (Load + Extend)
 if action == "Continue Chain":
     st.header("Continue a Chain")
-    uploaded_file = st.file_uploader("Upload JSON chain file to load", type="json", accept_multiple_files=False)  # Priority 3: Limits + Validation
-    if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:  # 10MB limit
-        st.error("File too large — max 10MB.")
-        st.stop()
+    uploaded_file = st.file_uploader("Upload JSON chain file to load", type="json")
     if uploaded_file:
         try:
             data = json.load(uploaded_file)
@@ -157,7 +178,7 @@ if action == "Fetch Permanent Chain":
     if st.button("Fetch & Load"):
         try:
             tx_id = arweave_url.split('/')[-1] if '/' in arweave_url else arweave_url
-            response = requests.get(f"https://x.ai/arweave.net/{tx_id}")
+            response = requests.get(f"https://arweave.net/{tx_id}")
             if response.status_code == 200:
                 data = response.json()
                 chain = VeilMemoryChain()
@@ -177,6 +198,93 @@ if action == "Fetch Permanent Chain":
                 st.error("Fetch failed - invalid TX ID or link.")
         except Exception as e:
             st.error(f"Fetch failed: {e}")
+
+# Check Balance (Ethics Score Analyzer)
+if action == "Check Balance":
+    st.header("Check Chain Balance (Ethics Score)")
+    if chain is None:
+        st.warning("Load or continue a chain first to check.")
+    else:
+        sia = SentimentIntensityAnalyzer()
+        positive = 0
+        negative = 0
+        human_count = 0
+        ai_count = 0
+        for block in chain.chain:
+            sentiment = sia.polarity_scores(block["content"])["compound"]
+            if sentiment > 0:
+                positive += 1
+            elif sentiment < 0:
+                negative += 1
+            if block["speaker"] == "human":
+                human_count += 1
+            else:
+                ai_count += 1
+        balance_score = (positive - negative) / len(chain.chain) * 100 if len(chain.chain) > 0 else 0
+        ratio = human_count / ai_count if ai_count > 0 else "All human"
+        st.write("Positive sentiment blocks:", positive)
+        st.write("Negative sentiment blocks:", negative)
+        st.write("Human/AI ratio:", ratio)
+        st.write("Overall Balance Score (0-100):", balance_score)
+        if balance_score > 50:
+            st.success("Chain is balanced and positive!")
+        else:
+            st.warning("Chain could use more balance — add positive interactions.")
+
+# AI Feedback Loops
+if action == "AI Feedback Loops":
+    st.header("AI Feedback Loops - Analyze & Suggest")
+    if chain is None:
+        st.warning("Load or continue a chain first to analyze.")
+    else:
+        st.write("Analyzing chain patterns...")
+        themes = []
+        for block in chain.chain:
+            blob = TextBlob(block["content"])
+            themes.extend(blob.noun_phrases)
+        unique_themes = list(set(themes))
+        st.write("Detected themes:", unique_themes)
+        sentiment_trend = [SentimentIntensityAnalyzer().polarity_scores(block["content"])["compound"] for block in chain.chain]
+        st.line_chart(sentiment_trend)
+        st.write("Suggestions for improvement:")
+        if len(unique_themes) < 3:
+            st.info("Add more diverse themes to broaden the coship.")
+        if sentiment_trend[-1] < 0:
+            st.info("End on a positive note for balance.")
+        st.success("AI can learn from this loop — extend and analyze again.")
+
+# Share Chain (Community Sharing)
+if action == "Share Chain":
+    st.header("Share Chain for Community Learning")
+    if chain is None:
+        st.warning("Load or continue a chain first to share.")
+    else:
+        wallet_file = st.file_uploader("Upload your Arweave wallet JSON keyfile to upload", type="json")
+        if wallet_file:
+            try:
+                wallet_path = "temp_wallet.json"
+                with open(wallet_path, "wb") as f:
+                    f.write(wallet_file.getvalue())
+                permanent_url = chain.upload_to_arweave(wallet_path)
+                if permanent_url:
+                    st.success("Chain shared permanently on Arweave!")
+                    st.write("Shareable Link:", permanent_url)
+                    st.info("Anyone can fetch and learn from this chain — contributing to collective ethical data.")
+                else:
+                    st.error("Share failed.")
+            except Exception as e:
+                st.error(f"Share failed: {e}")
+        else:
+            st.info("Upload your Arweave wallet JSON keyfile to share the chain.")
+
+# Play Quick-Scope Runner
+if action == "Play Quick-Scope Runner":
+    st.header("Quick-Scope Runner - Distraction Mode")
+    st.write("Run & quick-scope toxics. Boss at 10k pts! AI snaps aim.")
+    # Embed game in iframe
+    st.components.v1.html("""
+    <iframe srcdoc='YOUR_GAME_HTML_HERE' width="600" height="400" frameborder="0"></iframe>
+    """, height=400)
 
 # View Stewards
 if action == "View Stewards":
