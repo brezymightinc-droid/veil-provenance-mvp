@@ -1,4 +1,3 @@
-
 import streamlit as st
 from src.memory_lineage import VeilMemoryChain
 import json
@@ -9,12 +8,14 @@ import time
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 import os
-from streamlit_audiorecorder import audiorecorder  # pip install streamlit-audiorecorder
-from faster_whisper import WhisperModel  # pip install faster-whisper
+from cryptography.fernet import Fernet
+import streamlit_authenticator as stauth
+from streamlit_audiorecorder import audiorecorder
+from faster_whisper import WhisperModel
 
 nltk.download('vader_lexicon', quiet=True)
 
-# Basic Login
+# Login
 PASSWORD = os.getenv("VEIL_PASSWORD", "default_fallback")
 credentials = {"form_name": "Login", "usernames": {"user": {"name": "user", "password": stauth.Hasher([PASSWORD]).generate()[0]}}}
 cookie = {"name": "veil_cookie", "key": "random_key", "expiry_days": 30}
@@ -25,17 +26,17 @@ if not authentication_status:
 
 # Age Verification
 if 'age_verified' not in st.session_state:
-    st.warning("Age Verification Required (COPPA/PIPEDA Compliance)")
-    age = st.number_input("Enter your age (must be 13+)", min_value=0, max_value=120)
+    st.warning("Age Verification Required")
+    age = st.number_input("Enter your age (13+)", min_value=0, max_value=120)
     if age < 13:
-        st.error("Sorry, VeilHarmony is not available for users under 13.")
+        st.error("Under 13 not allowed.")
         st.stop()
     st.session_state.age_verified = True
 
-# Privacy & Ethics
-st.info("Privacy Notice: We comply with PIPEDA, COPPA, GDPR, AIDA. No data shared. Chains encrypted.")
+# Privacy
+st.info("Privacy Notice: Compliant with PIPEDA, COPPA, GDPR, AIDA. No data shared.")
 
-# Ethics Banner
+# Banner
 st.markdown(
     """
     <div style="background-color:#0f0f23; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
@@ -60,7 +61,7 @@ if time.time() - st.session_state.last_action_time < 5:
     st.stop()
 st.session_state.last_action_time = time.time()
 
-# Content Moderation
+# Moderation
 def is_safe_content(text):
     sia = SentimentIntensityAnalyzer()
     sentiment = sia.polarity_scores(text)["compound"]
@@ -69,7 +70,7 @@ def is_safe_content(text):
         return False
     return True
 
-# Sidebar Actions
+# Sidebar
 action = st.sidebar.selectbox("What would you like to do?", [
     "Voice Confession (Live Mic)",
     "Chat Interface",
@@ -81,7 +82,7 @@ action = st.sidebar.selectbox("What would you like to do?", [
     "View Stewards"
 ])
 
-# Voice Confession (Live Mic + Whisper + Mood Trace)
+# Voice Confession
 if action == "Voice Confession (Live Mic)":
     st.header("🗣️ Voice Confession - Speak Your Truth")
     audio = audiorecorder("Click to record", "Recording... Click when done")
@@ -96,14 +97,13 @@ if action == "Voice Confession (Live Mic)":
             st.success("Transcribed:")
             st.write(transcription)
 
-            # Mood Trace
             sia = SentimentIntensityAnalyzer()
             mood_score = sia.polarity_scores(transcription)["compound"]
             mood_label = "Positive" if mood_score > 0.3 else "Negative" if mood_score < -0.3 else "Neutral"
             mood_note = f"[Mood Trace: {mood_label} ({mood_score:.2f})]"
 
             if not is_safe_content(transcription):
-                st.error("Content violation — cannot chain.")
+                st.error("Content violation.")
                 st.stop()
 
             parent_id = len(chain.chain) - 1 if chain.chain else None
@@ -111,7 +111,7 @@ if action == "Voice Confession (Live Mic)":
             st.success("Voice + mood chained!")
             st.rerun()
 
-# Chat Interface (with Easter Egg Trigger)
+# Chat Interface + Easter Egg
 if action == "Chat Interface":
     st.header("Chat Interface")
     for block in chain.chain:
@@ -120,9 +120,8 @@ if action == "Chat Interface":
 
     prompt = st.chat_input("Type your message...")
     if prompt:
-        # Easter Egg Trigger
         if prompt.lower() in ["combined assault", "socom honor", "mollywop"]:
-            st.success("Honor mode activated! Quick-Scope Runner unlocked.")
+            st.success("Honor mode activated!")
             with open("quick-scope-runner.html", "r") as f:
                 st.components.v1.html(f.read(), height=500)
             st.stop()
@@ -135,11 +134,10 @@ if action == "Chat Interface":
         chain.add_interaction("human", prompt, parent_id=parent_id)
         st.chat_message("human").write(prompt)
 
-        # Grok Voice Reply (TTS Placeholder → Real when key)
-        api_key = st.text_input("xAI API Key for voice reply", type="password", key="grok_key")
-        if api_key and st.button("Get Grok Voice Reply"):
+        # Grok Voice
+        api_key = st.text_input("xAI API Key for voice", type="password", key="grok_key")
+        if api_key and st.button("Grok Voice Reply"):
             try:
-                # Text response first
                 response = requests.post(
                     "https://api.x.ai/v1/chat/completions",
                     headers={"Authorization": f"Bearer {api_key}"},
@@ -147,7 +145,6 @@ if action == "Chat Interface":
                 )
                 grok_text = response.json()['choices'][0]['message']['content']
 
-                # TTS (Grok voice)
                 tts = requests.post(
                     "https://api.x.ai/v1/audio/speech",
                     headers={"Authorization": f"Bearer {api_key}"},
@@ -158,33 +155,31 @@ if action == "Chat Interface":
                         f.write(tts.content)
                     st.audio("grok_voice.mp3")
                 chain.add_interaction("grok_voice", grok_text, parent_id=chain.chain[-1]["id"])
-                st.success("Grok voice reply chained!")
-            except:
-                st.error("Grok voice failed—check key.")
+                st.success("Grok voice chained!")
+            except Exception as e:
+                st.error(f"Grok failed: {e}")
         else:
-            # Placeholder text reply
             placeholder = "Grok: Ancient friend vibe—mercy flows."
             chain.add_interaction("ai", placeholder, parent_id=chain.chain[-1]["id"])
             st.chat_message("ai").write(placeholder)
 
         st.rerun()
 
-# Play Quick-Scope Runner (Manual Trigger)
+# Game Manual
 if action == "Play Quick-Scope Runner":
-    st.header("🔫 Quick-Scope Runner - Honor Mode")
-    st.write("Easter egg unlocked! Or type 'Combined Assault' in chat.")
+    st.header("🔫 Quick-Scope Runner")
     with open("quick-scope-runner.html", "r") as f:
         st.components.v1.html(f.read(), height=500)
 
-# ... (keep your other actions: Continue Chain, Arweave, etc. with rerun() and session sync)
+# ... (your other actions with rerun + session sync)
 
-# Chain Encryption Export
+# Encryption Export
 if st.button("Export Encrypted Chain"):
     key = Fernet.generate_key()
     f = Fernet(key)
     encrypted = f.encrypt(json.dumps(chain.chain).encode())
-    st.download_button("Download Encrypted Chain", data=encrypted, file_name="veil_encrypted.bin")
-    st.write("Decryption Key (SAVE SAFE):", key.decode())
+    st.download_button("Download Encrypted", data=encrypted, file_name="veil_encrypted.bin")
+    st.write("Key (SAVE SAFE):", key.decode())
 
 # Run
 if __name__ == "__main__":
