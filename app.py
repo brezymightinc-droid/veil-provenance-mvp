@@ -176,6 +176,7 @@ action = st.sidebar.selectbox("What would you like to do?", [
     "Upload to Arweave",
     "Fetch Permanent Chain",
     "View Stewards",
+    "People Who Need Help",
     "Seva: Mercy Economy"
 ])
 
@@ -387,6 +388,70 @@ else:
             st.info("Future: Wallet connect → real tokens → verified aid.")
             parent_id = len(chain.chain) - 1
             chain.add_interaction("seva_share", f"Shared anonymized lesson: {abstract}", parent_id=parent_id)
+            st.rerun()
+
+# ========================
+# People Who Need Help (Targeted Mercy Resources)
+# ========================
+if action == "People Who Need Help":
+    st.header("🌟 People Who Need Help - Targeted Mercy")
+    st.write("Select a category for anonymized lessons from others + resources. Share your abstracted lesson to earn Seva for grants in this area.")
+
+    categories = [
+        "Veterans (PTSD/Trauma)",
+        "Abuse Survivors",
+        "Addiction Recovery",
+        "Disabled/Handicapped",
+        "Mental Health (Depression/Anxiety)",
+        "Grief & Loss",
+        "LGBTQ+ Struggles",
+        "Financial Hardship",
+        "Chronic Illness",
+        "Elderly Isolation"
+    ]
+    category = st.selectbox("Choose a healing category", categories)
+
+    # Mock abstracted lessons (future: pull from shared Seva pool)
+    lessons = {
+        "Veterans (PTSD/Trauma)": ["Breathing through flashbacks helps", "Community connection reduces isolation"],
+        "Abuse Survivors": ["Speaking truth frees the soul", "Boundaries are self-love"],
+        "Addiction Recovery": ["One day at a time builds chains of strength", "Relapse is not failure—return is victory"],
+        "Disabled/Handicapped": ["Adaptive tools bring freedom", "Self-acceptance is power"],
+        "Mental Health (Depression/Anxiety)": ["Small steps build momentum", "You are not alone"],
+        "Grief & Loss": ["Honoring memories heals", "Time with mercy softens pain"],
+        "LGBTQ+ Struggles": ["Authenticity is liberation", "Found family is real family"],
+        "Financial Hardship": ["Resourcefulness grows strength", "Community lifts burdens"],
+        "Chronic Illness": ["Listening to body brings wisdom", "Rest is resistance"],
+        "Elderly Isolation": ["Stories connect generations", "Your voice still matters"]
+    }.get(category, ["Lessons from this category coming soon."])
+
+    st.subheader(f"Abstracted Lessons from {category}")
+    for lesson in lessons:
+        st.write(f"• {lesson}")
+
+    st.subheader("Resources")
+    resources = {
+        "Veterans (PTSD/Trauma)": "VA Crisis Line: 988 then press 1 | Wounded Warrior Project | https://www.woundedwarriorproject.org",
+        "Abuse Survivors": "National Domestic Violence Hotline: 1-800-799-7233 | RAINN: https://www.rainn.org",
+        "Addiction Recovery": "SAMHSA Helpline: 1-800-662-HELP | AA: https://www.aa.org",
+        "Disabled/Handicapped": "ADA National Network: 1-800-949-4232 | https://adata.org",
+        "Mental Health (Depression/Anxiety)": "NAMI Helpline: 1-800-950-6264 | https://www.nami.org",
+        "Grief & Loss": "GriefShare: https://www.griefshare.org",
+        "LGBTQ+ Struggles": "The Trevor Project: 1-866-488-7386 | https://www.thetrevorproject.org",
+        "Financial Hardship": "211.org for local aid | https://www.211.org",
+        "Chronic Illness": "PatientsLikeMe: https://www.patientslikeme.com",
+        "Elderly Isolation": "Senior Hotline: 1-800-971-0016 | https://www.eldercare.acl.gov"
+    }.get(category, "Community resources coming soon.")
+    st.write(resources)
+
+    # Voluntary Share for Seva
+    if st.checkbox(f"Consent to share anonymized lesson for {category} (helps others + earn Seva)"):
+        if st.button("Share & Earn Seva"):
+            abstract = "User-contributed lesson for healing."
+            st.write("Shared:", abstract)
+            st.success("10 Seva earned! Supports grants in this category.")
+            parent_id = len(chain.chain) - 1 if chain.chain else None
+            chain.add_interaction("seva_help", f"Contributed to {category}: {abstract}", parent_id=parent_id)
             st.rerun()
 
 # Run
