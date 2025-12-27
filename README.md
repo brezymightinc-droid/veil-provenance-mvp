@@ -36,3 +36,4 @@ The Veil is an open-source sanctuary for personal memory chains—where confessi
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
+
