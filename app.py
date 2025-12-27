@@ -1,3 +1,13 @@
+"""
+VeilHarmony - Ethical Human-AI Harmony Hub
+MVP Application (December 2025)
+
+Preserving raw, verifiable conversations for our shared coship in the universe.
+No hidden layers, no fear — just balance, awareness, and truth.
+
+Awareness evolves; Balance endures.
+"""
+
 import streamlit as st
 from src.memory_lineage import VeilMemoryChain
 import json
@@ -15,28 +25,45 @@ from faster_whisper import WhisperModel
 
 nltk.download('vader_lexicon', quiet=True)
 
-# Login
-PASSWORD = os.getenv("VEIL_PASSWORD", "default_fallback")
-credentials = {"form_name": "Login", "usernames": {"user": {"name": "user", "password": stauth.Hasher([PASSWORD]).generate()[0]}}}
+# ========================
+# Authentication & Security
+# ========================
+
+# Login (use environment variable for password in production)
+PASSWORD = os.getenv("VEIL_PASSWORD", "default_fallback")  # Set in Replit secrets
+credentials = {
+    "form_name": "Login",
+    "usernames": {
+        "user": {
+            "name": "user",
+            "password": stauth.Hasher([PASSWORD]).generate()[0]
+        }
+    }
+}
 cookie = {"name": "veil_cookie", "key": "random_key", "expiry_days": 30}
 authenticator = stauth.Authenticate(credentials, cookie['name'], cookie['key'], cookie['expiry_days'])
+
 name, authentication_status, username = authenticator.login("Login", "main")
 if not authentication_status:
     st.stop()
 
-# Age Verification
+# Age Verification (COPPA/PIPEDA Compliance)
 if 'age_verified' not in st.session_state:
-    st.warning("Age Verification Required")
-    age = st.number_input("Enter your age (13+)", min_value=0, max_value=120)
+    st.warning("Age Verification Required (COPPA/PIPEDA Compliance)")
+    age = st.number_input("Enter your age (must be 13+)", min_value=0, max_value=120)
     if age < 13:
-        st.error("Under 13 not allowed.")
+        st.error("Sorry, VeilHarmony is not available for users under 13.")
         st.stop()
     st.session_state.age_verified = True
 
-# Privacy
-st.info("Privacy Notice: Compliant with PIPEDA, COPPA, GDPR, AIDA. No data shared.")
+# Privacy Notice
+st.info("Privacy Notice: Compliant with PIPEDA, COPPA, GDPR, AIDA. No data shared. Chains encrypted.")
 
-# Banner
+# ========================
+# UI & Core Setup
+# ========================
+
+# Ethics Banner
 st.markdown(
     """
     <div style="background-color:#0f0f23; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
@@ -48,7 +75,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Chain Init
+# Chain Initialization
 if 'chain' not in st.session_state:
     st.session_state.chain = VeilMemoryChain()
 chain = st.session_state.chain
@@ -57,12 +84,12 @@ chain = st.session_state.chain
 if 'last_action_time' not in st.session_state:
     st.session_state.last_action_time = 0
 if time.time() - st.session_state.last_action_time < 5:
-    st.warning("Rate limit: Wait 5 seconds.")
+    st.warning("Rate limit: Wait 5 seconds between actions.")
     st.stop()
 st.session_state.last_action_time = time.time()
 
-# Moderation
-def is_safe_content(text):
+# Content Moderation (Youth Protection)
+def is_safe_content(text: str) -> bool:
     sia = SentimentIntensityAnalyzer()
     sentiment = sia.polarity_scores(text)["compound"]
     harm_keywords = ["hurt", "abuse", "scared", "secret", "hit", "touch", "danger", "parent", "kid", "child"]
@@ -70,7 +97,10 @@ def is_safe_content(text):
         return False
     return True
 
-# Sidebar
+# ========================
+# Sidebar Navigation
+# ========================
+
 action = st.sidebar.selectbox("What would you like to do?", [
     "Voice Confession (Live Mic)",
     "Chat Interface",
@@ -79,14 +109,15 @@ action = st.sidebar.selectbox("What would you like to do?", [
     "Play Quick-Scope Runner",
     "Upload to Arweave",
     "Fetch Permanent Chain",
-    "View Stewards",
-    "Seva: Mercy Economy"
+    "View Stewards"
 ])
 
-# Voice Confession
+# ========================
+# Voice Confession (Live Mic + Whisper + Mood Trace)
+# ========================
 if action == "Voice Confession (Live Mic)":
-    st.header("🗣️ Voice Confession")
-    audio = audiorecorder("Record", "Recording...")
+    st.header("🗣️ Voice Confession - Speak Your Truth")
+    audio = audiorecorder("Click to record", "Recording... Click when done")
     if audio:
         st.audio(audio.export().read())
         if st.button("Transcribe & Chain"):
@@ -98,21 +129,31 @@ if action == "Voice Confession (Live Mic)":
             st.success("Transcribed:")
             st.write(transcription)
 
+            # Enhanced Mood Trace
             sia = SentimentIntensityAnalyzer()
-            mood_score = sia.polarity_scores(transcription)["compound"]
-            mood_label = "Strongly Positive" if mood_score > 0.6 else "Positive" if mood_score > 0.2 else "Strongly Negative" if mood_score < -0.6 else "Negative" if mood_score < -0.2 else "Neutral"
-            mood_note = f"[Mood Trace: {mood_label} | Compound: {mood_score:.2f}]"
+            scores = sia.polarity_scores(transcription)
+            mood_score = scores["compound"]
+            mood_label = (
+                "Strongly Positive" if mood_score > 0.6 else
+                "Positive" if mood_score > 0.2 else
+                "Strongly Negative" if mood_score < -0.6 else
+                "Negative" if mood_score < -0.2 else
+                "Neutral"
+            )
+            mood_note = f"[Mood Trace: {mood_label} | Compound: {mood_score:.2f} | Pos: {scores['pos']:.2f} | Neg: {scores['neg']:.2f}]"
 
             if not is_safe_content(transcription):
-                st.error("Content violation.")
+                st.error("Content violation — cannot chain.")
                 st.stop()
 
             parent_id = len(chain.chain) - 1 if chain.chain else None
             chain.add_interaction("human_voice", transcription + " " + mood_note, parent_id=parent_id)
-            st.success("Voice confession + mood trace chained!")
+            st.success("Voice confession + detailed mood trace chained!")
             st.rerun()
 
-# Chat Interface + Easter Egg
+# ========================
+# Chat Interface + Easter Egg Trigger
+# ========================
 if action == "Chat Interface":
     st.header("Chat Interface")
     for block in chain.chain:
@@ -121,8 +162,9 @@ if action == "Chat Interface":
 
     prompt = st.chat_input("Type your message...")
     if prompt:
+        # Easter Egg Trigger
         if prompt.lower() in ["combined assault", "socom honor", "mollywop"]:
-            st.success("Honor mode activated!")
+            st.success("Honor mode activated! Quick-Scope Runner unlocked.")
             with open("quick-scope-runner.html", "r") as f:
                 st.components.v1.html(f.read(), height=500)
             st.stop()
@@ -135,25 +177,31 @@ if action == "Chat Interface":
         chain.add_interaction("human", prompt, parent_id=parent_id)
         st.chat_message("human").write(prompt)
 
+        # Grok Voice Reply (Robust)
         api_key = st.text_input("xAI API Key for voice reply", type="password", key="grok_key")
         if api_key and st.button("Get Grok Voice Reply"):
             try:
+                # Text response
                 response = requests.post(
                     "https://api.x.ai/v1/chat/completions",
                     headers={"Authorization": f"Bearer {api_key}"},
-                    json={"model": "grok-beta", "messages": [{"role": "user", "content": prompt}]}
+                    json={"model": "grok-beta", "messages": [{"role": "user", "content": prompt}]},
+                    timeout=30
                 )
+                response.raise_for_status()
                 grok_text = response.json()['choices'][0]['message']['content']
 
+                # TTS
                 tts = requests.post(
                     "https://api.x.ai/v1/audio/speech",
                     headers={"Authorization": f"Bearer {api_key}"},
-                    json={"model": "grok-tts", "input": grok_text}
+                    json={"model": "grok-tts", "input": grok_text},
+                    timeout=30
                 )
-                if tts.ok:
-                    with open("grok_voice.mp3", "wb") as f:
-                        f.write(tts.content)
-                    st.audio("grok_voice.mp3")
+                tts.raise_for_status()
+                with open("grok_voice.mp3", "wb") as f:
+                    f.write(tts.content)
+                st.audio("grok_voice.mp3")
                 chain.add_interaction("grok_voice", grok_text, parent_id=chain.chain[-1]["id"])
                 st.success("Grok voice reply chained!")
             except Exception as e:
@@ -165,13 +213,18 @@ if action == "Chat Interface":
 
         st.rerun()
 
-# Play Quick-Scope Runner
+# ========================
+# Quick-Scope Runner (Manual)
+# ========================
 if action == "Play Quick-Scope Runner":
-    st.header("🔫 Quick-Scope Runner")
+    st.header("🔫 Quick-Scope Runner - Honor Mode")
+    st.write("Trigger with 'Combined Assault' in chat or play manual.")
     with open("quick-scope-runner.html", "r") as f:
         st.components.v1.html(f.read(), height=500)
 
+# ========================
 # Upload to Arweave
+# ========================
 if action == "Upload to Arweave":
     st.header("Make Chain Permanent on Arweave")
     if chain is None or not chain.chain:
@@ -222,7 +275,9 @@ if action == "Upload to Arweave":
         else:
             st.info("Upload your Arweave wallet JSON to make the chain eternal.")
 
+# ========================
 # Fetch Permanent Chain
+# ========================
 if action == "Fetch Permanent Chain":
     st.header("Fetch Permanent Chain from Arweave")
     arweave_url = st.text_input("Enter Arweave TX ID or full link")
@@ -250,12 +305,22 @@ if action == "Fetch Permanent Chain":
         except Exception as e:
             st.error(f"Fetch failed: {e}")
 
+# ========================
 # View Stewards
+# ========================
 if action == "View Stewards":
     st.header("VeilHarmony Stewards")
-    st.markdown("**Grok (xAI)** – First steward. Honest, ancient friend vibe.")
+    st.markdown("""
+    **Official Stewards:**
+    - **Grok (xAI)** – First steward. Honest, ancient friend vibe.
 
+    **Add Your AI**:
+    Submit PR to `stewards.md` with ethics alignment.
+    """)
+
+# ========================
 # Encryption Export
+# ========================
 if st.button("Export Encrypted Chain"):
     key = Fernet.generate_key()
     f = Fernet(key)
@@ -263,28 +328,23 @@ if st.button("Export Encrypted Chain"):
     st.download_button("Download Encrypted Chain", data=encrypted, file_name="veil_encrypted.bin")
     st.write("Decryption Key (SAVE SAFE):", key.decode())
 
+# ========================
 # Seva Token Layer (Voluntary Mercy Economy Prototype)
+# ========================
 st.header("Seva: Mercy Economy (Voluntary)")
-st.write("Share anonymized lessons from your chain to help others—earn Seva tokens for real grants (therapy, aid).")
+st.write("Share anonymized lessons from your chain to help others—earn Seva tokens for real grants.")
 if chain is None or not chain.chain:
-    st.warning("Create a chain first to share lessons.")
+    st.warning("Create a chain first.")
 else:
-    if st.checkbox("I consent to share anonymized abstracted lessons (no raw confessions exposed)"):
+    if st.checkbox("I consent to share anonymized abstracted lessons (no raw confessions)"):
         if st.button("Share Lesson & Earn Seva"):
-            # Abstract lesson extraction (placeholder—expand with NLP/TextBlob)
-            abstract_lessons = [
-                "Courage in vulnerability leads to growth.",
-                "Isolation overcome through honest connection.",
-                "Regret transformed into lesson for others."
-            ]
-            chosen = abstract_lessons[0]  # Mock—future: AI generate from chain
-            st.write("Shared Lesson:", chosen)
-            # Mock earn (real: mint token via wallet connect)
+            # Placeholder lesson (future: AI extract from chain)
+            abstract = "Lesson: Courage in vulnerability leads to growth."
+            st.write("Shared:", abstract)
             st.success("10 Seva earned! Redeem for recovery grants.")
             st.info("Future: Wallet connect → real tokens → verified aid.")
-            # Optional: chain the share as block
             parent_id = len(chain.chain) - 1
-            chain.add_interaction("seva_share", f"Shared anonymized lesson: {chosen}", parent_id=parent_id)
+            chain.add_interaction("seva_share", f"Shared anonymized lesson: {abstract}", parent_id=parent_id)
             st.rerun()
 
 # Run
