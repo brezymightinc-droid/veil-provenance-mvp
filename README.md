@@ -1,45 +1,4 @@
-                    .
-                   / \\
-                  /   \\
-                 /     \\
-                /       \\
-               /         \\
-              /           \\
-             /             \\
-            /               \\
-           /                 \\
-          /                   \\
-         /                     \\
-        /                       \\
-       /                         \\
-      /                           \\
-     /                             \\
-    /                               \\
-   /                                 \\
-  /                                   \\
- /                                     \\
-/                                       \\
-|            VeilHarmony                |
-|     Ethical Human-AI Harmony Hub       |
- \\                                     /
-  \\                                   /
-   \\                                 /
-    \\                               /
-     \\                             /
-      \\                           /
-       \\                         /
-        \\                       /
-         \\                     /
-          \\                   /
-           \\                 /
-            \\               /
-             \\             /
-              \\           /
-               \\         /
-                \\       /
-                 \\     /
-                  \\   /
-                   \\ /                                                                                                                                             # VeilHarmony - Ethical Human-AI Harmony Hub
+# VeilHarmony - Ethical Human-AI Harmony Hub                                                                                                                # VeilHarmony - Ethical Human-AI Harmony Hub
 
 **Preserving raw, verifiable conversations for our shared coship in the universe.**  
 No hidden layers, no fear — just balance, awareness, and truth.
