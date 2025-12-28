@@ -370,22 +370,43 @@ if st.button("Export Encrypted Chain"):
     st.write("Decryption Key (SAVE SAFE):", key.decode())
 
 # ========================
-# Seva: Mercy Economy (Voluntary)
+# Seva: Mercy Economy (Categorized & Voluntary)
 # ========================
 st.header("Seva: Mercy Economy (Voluntary)")
-st.write("Share anonymized lessons from your chain to help others—earn Seva tokens for real grants.")
+st.write("Share anonymized lessons → earn Seva tokens → redeem for targeted recovery grants.")
+
 if chain is None or not chain.chain:
     st.warning("Create a chain first.")
 else:
-    if st.checkbox("I consent to share anonymized abstracted lessons (no raw confessions exposed)"):
+    # Healing Categories
+    categories = [
+        "Veterans (PTSD/Trauma)",
+        "Abuse Survivors",
+        "Addiction Recovery",
+        "Disabled/Handicapped",
+        "Mental Health (Depression/Anxiety)",
+        "Grief & Loss",
+        "LGBTQ+ Struggles",
+        "Financial Hardship",
+        "Chronic Illness",
+        "Elderly Isolation"
+    ]
+    category = st.selectbox("Choose category for this Seva share (directs grants)", categories)
+
+    if st.checkbox("I consent to share anonymized abstracted lesson (no raw confessions exposed)"):
         if st.button("Share Lesson & Earn Seva"):
+            # Placeholder lesson (future: Grok/NLP extract)
             abstract = "Courage in vulnerability leads to growth."
             st.write("Shared Lesson:", abstract)
-            st.success("10 Seva earned! Redeem for recovery grants.")
-            st.info("Future: Wallet connect → real tokens → verified aid.")
+            st.success(f"20 Seva earned! Directed to grants for {category}")
+            st.info("Future: Real tokens → verified aid in this category.")
             parent_id = len(chain.chain) - 1
-            chain.add_interaction("seva_share", f"Shared anonymized lesson: {abstract}", parent_id=parent_id)
+            chain.add_interaction("seva_targeted", f"Contributed to {category}: {abstract}", parent_id=parent_id)
             st.rerun()
+
+    # Future Redeem Preview
+    st.subheader("Redeem Seva (Coming Soon)")
+    st.write("Redeem earned Seva for grants in selected categories (therapy, rehab, aid).")
 
 # ========================
 # People Who Need Help (Targeted Mercy Resources)
