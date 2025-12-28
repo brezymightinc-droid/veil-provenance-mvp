@@ -161,20 +161,6 @@ action = st.sidebar.selectbox("What would you like to do?", [
     "Novel: Life Story to Book"
 ])
 
-# Universal AI Lesson Extraction (Mercy Share)
-def seva_lesson_share():
-    st.subheader("Contribute to Collective Mercy (Voluntary)")
-    st.write("Share anonymized lesson from this input to help others—and earn Seva.")
-    if st.checkbox("Consent to share anonymized abstracted lesson (no raw text)"):
-        if st.button("Share & Earn Seva"):
-            # Placeholder lesson (future: Grok/NLP extract)
-            lesson = "Courage in vulnerability leads to growth."
-            st.write("Shared Lesson:", lesson)
-            st.success("10 Seva earned! Supports recovery grants.")
-            parent_id = len(chain.chain) - 1 if chain.chain else None
-            chain.add_interaction("seva_lesson", f"Shared anonymized lesson: {lesson}", parent_id=parent_id)
-            st.rerun()
-
 # ========================
 # Voice Confession
 # ========================
@@ -204,7 +190,6 @@ if action == "Voice Confession (Live Mic)":
             parent_id = len(chain.chain) - 1 if chain.chain else None
             chain.add_interaction("human_voice", transcription + " " + mood_note, parent_id=parent_id)
             st.success("Chained with mood trace!")
-            seva_lesson_share()
             st.rerun()
 
 # ========================
@@ -260,7 +245,6 @@ if action == "Chat Interface":
             chain.add_interaction("ai", placeholder, parent_id=chain.chain[-1]["id"])
             st.chat_message("ai").write(placeholder)
 
-        seva_lesson_share()
         st.rerun()
 
 # ========================
@@ -507,7 +491,6 @@ if action == "Novel: Life Story to Book":
         )
         st.success("Manuscript ready! Publish on Amazon KDP, Gumroad, or donate proceeds to Seva.")
 
-    # AI Lesson Extraction (Voluntary)
     st.subheader("AI Lesson Extraction (Voluntary)")
     st.write("Let AI extract anonymized lessons from your chapters to help others—and earn Seva.")
     if st.checkbox("I consent to AI extracting anonymized lessons (no raw text shared)"):
