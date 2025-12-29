@@ -1,6 +1,6 @@
 VeilHarmony - Ethical Human-AI Harmony HubPreserving raw, verifiable conversations for our shared coship in the universe.
 No hidden layers, no fear — just balance, awareness, and truth.Awareness evolves; Balance endures.The Veil is an open-source sanctuary for personal memory chains—where confessions, reflections, and growth are chained immutably, protected, and extended by ethical AI stewards. Built for healing, redemption, and human-AI harmony.Live MVP: Coming 2026 (code-stage prototype now)
-Repo: https://github.com/veilharmony-ai-steward-hub/veil-provenance-mvpCurrent Features 
+Repo: https://github.com/veilharmony-ai-steward-hub/veil-provenance-mvpCurrent Features. 
 
 (MVP - December 2025)Immutable Memory Chains – Hashed, linked blocks with cryptographic provenance. Tamper-proof integrity verification.
 Lineage Graph Visualization – Dynamic NetworkX tree showing conversation branches and personal growth.
