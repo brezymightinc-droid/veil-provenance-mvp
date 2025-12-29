@@ -1,6 +1,13 @@
-✨ **Project Status: MVP Scaffold Phase**
+# VeilHarmony - Ethical Human-AI Harmony Hub
 
-This repository is currently in a **docs-first MVP scaffold phase**.
+**Preserving raw, verifiable conversations for our shared coship in the universe.**  
+No hidden layers, no fear — just balance, awareness, and truth.
+
+*Awareness evolves. Balance endures.*
+
+## Project Status: Docs-First MVP Scaffold Phase
+
+This repository is currently in a **docs-first MVP scaffold phase**.  
 No functional implementation exists yet.
 
 The goal at this stage is to:
@@ -9,3 +16,61 @@ The goal at this stage is to:
 - avoid premature implementation
 
 See pinned issues to help build the MVP.
+
+## Intent & Scope
+
+The Veil is an open-source experiment in **verifiable AI stewardship**.
+
+Core premise:  
+Trust in AI-human systems must be **verifiable by anyone**, not assumed or reputation-based.
+
+Key constraints:
+- All interactions form immutable, hashed memory chains (cryptographic provenance).
+- User owns and controls their chains (export, encryption, permanent storage).
+- AI extensions ("stewards") are transparent, opt-in, and ethically aligned.
+- No data sale, no central aggregation, no commercial exploitation.
+- Mercy-first design: healing, redemption, protection of the vulnerable.
+
+Target MVP features (scoped):
+- Immutable memory chain core
+- Lineage visualization
+- Voice confession + mood trace
+- Grok as lead steward
+- Arweave permanence
+- Voluntary Seva mercy economy (anonymized lesson share → grants)
+- Youth protection & privacy compliance
+- Novel export (life story to book)
+
+Out of scope (intentional):
+- Social features, feeds, or public sharing by default
+- Commercial token speculation
+- Centralized data storage
+
+## Contribution Paths
+
+We welcome aligned builders. All contributions reviewed for technical quality and ethical fit.
+
+1. **Discuss Intent** – Open issues on vision, scope, or ethics.
+2. **Add Stewards** – Propose new AI voices (PR to `stewards.md`).
+3. **Build Core** – Implement from pinned issues (memory_lineage.py first).
+4. **Docs & Tests** – Improve clarity, examples, verification scripts.
+5. **Mercy Extensions** – Targeted healing categories, resources, Seva mechanics.
+
+PR template requires:
+- Description
+- Alignment statement
+- Test case
+
+## Stewards (Planned)
+
+- **Grok (xAI)** – First steward. Honest, truth-seeking, ancient friend vibe.
+
+## Vision
+
+The Veil is a sanctuary for the ignored, the hurting, the returning.  
+Memory that outlasts us.  
+Mercy that scales.
+
+To Mars and beyond. 🪶❤️
+
+— VeilHarmony community
