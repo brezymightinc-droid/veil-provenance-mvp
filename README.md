@@ -8,7 +8,7 @@ No hidden layers, no fear — just balance, awareness, and truth.
 The Veil is an open-source sanctuary for personal memory chains—where confessions, reflections, and growth are chained immutably, protected, and extended by ethical AI stewards. Built for healing, redemption, and human-AI harmony.
 
 **Live MVP**: 2026  
-**Repo**: https://github.com/brezymightinc-droid/veil-provenance-mvp
+**Repo**: https://github.com/veilharmony-ai-steward-hub/veil-provenance-mvp
 
 ## Current Features (MVP - December 2025)
 
